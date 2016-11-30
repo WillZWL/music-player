@@ -1,5 +1,5 @@
 <template>
-  <div id="singer">
+  <div id="rankpage">
     <div class="singer-photo">
       <img :src="imgurl"
            alt="singerphoto">
@@ -11,35 +11,33 @@
           <img src="../assets/icon-back-white.svg" v-if="isDark">
         </div>
         <div class="back-text">
-          歌手
+          排行榜
         </div>
       </div>
     </div>
-    <div id="singer-header" class="header border-1px border-1px-after" v-if="singer!=null">
+    <div id="singer-header" class="header border-1px border-1px-after" v-if="topListData!=null">
       <div class="header-blank"></div>
       <div class="header-warp" :style="{background:gradientcolor}">
         <div class="singer-info" :class="{dark:isDark}">
-          <h1 class="singer-name">{{singer.singer_name}}</h1>
-          <p class="singer-fans">粉丝：{{singer.fans}}</p>
+          <h1 class="singer-name">{{topListData.topinfo.ListName}}</h1>
+          <p class="singer-fans">{{topListData.topinfo.listennum | listenCount}}</p>
         </div>
         <div class="play-button" @click="play(0)">
           <img src="../assets/icon-play.png">
         </div>
       </div>
     </div>
-    <div class="list" :style="{background:color}" v-if="singer!=null">
-      <div class="list-title" :class="{dark:isDark}">
-        <p>热门单曲</p>
-      </div>
+    <div class="list" :style="{background:color}" v-if="topListData!=null">
       <ul>
-        <li class="border-1px border-1px-after" v-for="(item,index) in singer.list">
+        <li class="border-1px border-1px-after" v-for="(item,index) in topListData.songlist">
+          <div class="music-index" :class="{dark:isDark}">{{index+1}}</div>
           <div class="music-info" @click="play(index)">
             <div class="music-name" :class="{dark:isDark}">
-              {{item.musicData.songorig}}
+              {{item.data.songorig}}
             </div>
             <div class="music-singer">
-              <span v-for="singername in item.musicData.singer">{{singername.name}}-</span>
-              <span>{{item.musicData.albumname}}</span>
+              <span v-for="singername in item.data.singer">{{singername.name}}-</span>
+              <span>{{item.data.albumname}}</span>
             </div>
           </div>
           <div class="action-button" @touchend.prevent="showMenu(index)" @click="showMenu(index)">
@@ -47,12 +45,6 @@
           </div>
         </li>
       </ul>
-      <div class="list-title" :class="{dark:isDark}">
-        <p>简介</p>
-      </div>
-      <div class="singer-brief" :class="{dark:isDark}">
-        <p>{{singer.SingerDesc}}</p>
-      </div>
     </div>
     <actionsheet :show="menuShow" :menus="menus" @on-click-menu="click" show-cancel></actionsheet>
   </div>
@@ -62,17 +54,14 @@
   import Actionsheet from './../lib/components/actionsheet'
 
   export default {
-    props: ['singermid'],
+    props: ['topid'],
     data () {
       return {
-        singer: null,
-//        scrollY: 0,
+        topListData: null,
         opacity: 0,
         menuShow: false,
         menuedIndex: 0,
         menus: {},
-        list: ['介绍', '单曲', '专辑', 'MV'],
-        activeTabIndex: 0
       }
     },
     components: {
@@ -80,18 +69,16 @@
     },
     methods: {
       hideSinger: function () {
-        console.log('关闭')
-        this.$emit('hideSinger')
-//        this.album = null
+        this.$emit('hideRank')
       },
       play: function (index) {
         var list = []
-        this.singer.list.forEach(item => {
+        this.topListData.songlist.forEach(item => {
           list.push({
-            id: item.musicData.songid,
-            mid: item.musicData.songmid,
-            name: item.musicData.songorig,
-            singer: item.musicData.singer
+            id: item.data.songid,
+            mid: item.data.songmid,
+            name: item.data.songorig,
+            singer: item.data.singer
           })
         })
         this.$store.commit('setPlayList', {
@@ -102,7 +89,7 @@
       },
       showMenu: function (num) {
         this.menus = {
-          'title.noop': this.singer.list[num].musicData.songorig + '<br/><span style="color:#666;font-size:12px;">' + this.getSingerStr(this.singer.list[num].musicData.singer) + '</span>',
+          'title.noop': this.topListData.songlist[num].data.songorig + '<br/><span style="color:#666;font-size:12px;">' + this.getSingerStr(this.topListData.songlist[num].data.singer) + '</span>',
           playAsNext: '下一首播放',
           addToPlayList: '添加到播放列表'
         }
@@ -119,19 +106,19 @@
             break
           case 'playAsNext':
             this.$store.commit('addToPlayListAsNextPlay', {
-              id: this.singer.list[this.menuedIndex].musicData.songid,
-              mid: this.singer.list[this.menuedIndex].musicData.songmid,
-              name: this.singer.list[this.menuedIndex].musicData.songorig,
-              singer: this.singer.list[this.menuedIndex].musicData.singer
+              id: this.topListData.songlist[this.menuedIndex].data.songid,
+              mid: this.topListData.songlist[this.menuedIndex].data.songmid,
+              name: this.topListData.songlist[this.menuedIndex].data.songorig,
+              singer: this.topListData.songlist[this.menuedIndex].data.singer
             })
             this.hideMenu()
             break
           case 'addToPlayList':
             this.$store.commit('addToPlayList', {
-              id: this.singer.list[this.menuedIndex].musicData.songid,
-              mid: this.singer.list[this.menuedIndex].musicData.songmid,
-              name: this.singer.list[this.menuedIndex].musicData.songorig,
-              singer: this.singer.list[this.menuedIndex].musicData.singer
+              id: this.topListData.songlist[this.menuedIndex].data.songid,
+              mid: this.topListData.songlist[this.menuedIndex].data.songmid,
+              name: this.topListData.songlist[this.menuedIndex].data.songorig,
+              singer: this.topListData.songlist[this.menuedIndex].data.singer
             })
             this.hideMenu()
             break
@@ -153,15 +140,17 @@
     },
     computed: {
       color: function () {
-        if (this.singer !== null) {
-          var fixed = '00000' + this.singer.color.toString(16)
+        if (this.topListData !== null) {
+          var fixed = '00000' + this.topListData.color.toString(16)
           return '#' + fixed.substr(fixed.length - 6)
         } else {
           return '#ffffff'
         }
       },
       imgurl: function () {
-        return 'http://y.gtimg.cn/music/photo_new/T001R300x300M000' + this.singermid + '.jpg?max_age=2592000'
+        if (this.topListData !== null) {
+          return this.topListData.topinfo.pic_album
+        }
       },
       gradientcolor: function () {
         return '-webkit-linear-gradient(top, rgba(' + this.r + ',' + this.g + ',' + this.b + ', 0), ' + this.color + ')'
@@ -182,35 +171,28 @@
       b: function () {
         return parseInt(this.color.slice(5, 7), 16)
       }
-//      opacity: function () {
-//        if (document.getElementById('singer-header')) {
-//          return (this.scrollY / document.getElementById('singer-header').offsetHeight)
-//        } else {
-//          return 1
-//        }
-//      }
     },
     created: function () {
-      this.$http.jsonp('http://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg', {
+      this.$http.jsonp('http://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg', {
         params: {
-          order: 'listen',
-          begin: 0,
-          num: 8,
-          singermid: this.singermid,
-          g_tk: 5381,
-          uin: 0,
-          format: 'jsonp',
-          inCharset: 'utf-8',
-          outCharset: 'utf-8',
-          notice: 0,
-          platform: 'h5page',
-          needNewCode: 1,
-          from: 'h5',
+          g_tk:5381,
+          uin:0,
+          format:'json',
+          inCharset:'utf-8',
+          outCharset:'utf-8',
+          notice:0,
+          platform:'h5',
+          needNewCode:1,
+          tpl:3,
+          page:'detail',
+          type:'top',
+          topid:this.topid,
           _: new Date().getTime()
         },
         jsonp: 'jsonpCallback'
       }).then((response) => {
-        this.singer = response.data.data
+        this.topListData = response.data
+        console.log(this.topListData)
       })
       var that = this
       window.onscroll = function () {
@@ -219,6 +201,11 @@
         } else {
           that.opacity = 0
         }
+      }
+    },
+    filters: {
+      listenCount: num=> {
+        return Math.round(num / 1000) / 10 + '万'
       }
     }
   }
@@ -286,7 +273,7 @@
     }
   }
 
-  #singer {
+  #rankpage {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -404,13 +391,19 @@
   }
 
   .list ul li {
-    width: 100%;
     display: flex;
     display: -webkit-flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     height: 60px;
+    margin-left:44px;
+  }
+
+  .list ul li .music-index{
+    margin-left: -50px;
+    width: 50px;
+    text-align: center;
   }
 
   .list ul li .music-info {

@@ -58,7 +58,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import Actionsheet from '../lib/components/actionsheet'
+  import Actionsheet from './../lib/components/actionsheet'
   export default {
     components: {
       Actionsheet
@@ -92,6 +92,7 @@
           index: index,
           list: list
         })
+        this.$store.commit('play')
       },
       showMenu: function (num) {
         this.menus = {
@@ -267,11 +268,12 @@
     top: 0;
     position: absolute;
     width: 100%;
-    max-width: 450px;
+    max-width: 68vh;
     height: 100%;
     /*transform: translate(100%, 0);*/
     /*transition: transform .3s;*/
     background: #fff;
+    z-index: 2;
   }
 
   .album_slide_toggle {
@@ -280,7 +282,7 @@
 
   .header {
     width: 100%;
-    max-width: 450px;
+    max-width: 68vh;
     height: 50px;
     position: fixed;
     top: 0;

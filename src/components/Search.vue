@@ -142,16 +142,19 @@
             this.searchHistory.splice(index, 1)
           }
           this.searchHistory.unshift(key)
+          this.searchHistory = this.searchHistory.slice(0,10)
           localStorage.searchHistory = JSON.stringify(this.searchHistory)
         })
       },
       focus: function () {
         this.searchShow = true
+        this.$emit('searchshow')
       },
       searchCancel: function () {
         this.searchShow = false
         this.key = ''
         this.searchRes = null
+        this.$emit('searchhide')
       },
       play: function (index) {
         this.$store.commit('setPlayList', {
@@ -242,6 +245,7 @@
     position: fixed;
     top: 0;
     background: #fff;
+    z-index: 1;
   }
 
   .search-input {
@@ -478,9 +482,9 @@
     width: 20px;
   }
 
-  @media screen and (min-width: 450px) {
+  @media screen and (min-width: 68vh) {
     .search {
-      width: 450px;
+      width: 68vh;
     }
   }
 
